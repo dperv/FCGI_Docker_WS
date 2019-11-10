@@ -1,0 +1,5 @@
+
+curl -X GET  "192.168.56.102/rq/?key=key2"
+curl -X DELETE  "192.168.56.102/rq/?key=key2"
+curl -v -X POST -d "{\"key\":\"key1\", \"value\":\"value3\"}" 192.168.56.102/rq/
+curl -v -X PUT -d "{\"key\":\"key1\", \"value\":\"value3\"}" 192.168.56.102/rq/
