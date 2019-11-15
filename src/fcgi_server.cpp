@@ -44,14 +44,18 @@ request FCGI_Server::Accept()
       for(int i=0; FCGXreq.envp[i] != NULL; i+=2)
       {
          char *var = FCGXreq.envp[i];
+         std::cout<<std::string(var)<<std::endl;
          if(var != NULL)
          {
-            char *p = strchr (var, '=');
-            if(p)
+            std::string vr(var);
+            size_t found = vr.find('=');
+
+            if (found != std::string::npos)
             {
-               p++;
-               data.header[std::string(var,(p-var-1))] = p;
+
+               data.header[vr.substr(0,found)] = vr.substr(found+1);
             }
+
          }
       }
 
