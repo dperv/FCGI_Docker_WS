@@ -50,8 +50,8 @@ request FCGI_Server::Accept()
             if(p)
             {
                p++;
+               data.header[std::string(var,(p-var-1))] = p;
             }
-            data.header[std::string(var,(p-var-1))] = p;
          }
       }
 
@@ -73,6 +73,7 @@ request FCGI_Server::Accept()
 
       if(data.header.count("CONTENT_LENGTH") && data.header["CONTENT_LENGTH"].length() && std::stoi(data.header["CONTENT_LENGTH"]) > 0)
       {
+
          int ilen = std::stoi(data.header["CONTENT_LENGTH"]);
          char *bufp = (char *)malloc(ilen+1);
          bzero(bufp, ilen+1);
@@ -92,9 +93,11 @@ int FCGI_Server::Response(response &resp)
 {
    FCGX_PutS("Content-type: text/html\r\n", FCGXreq.out);
    if(resp.status == OK)
-      FCGX_PutS("Status: 200 OK\r\n", FCGXreq.out);
+      FCGX_PutS("Status: 200 OK\r\nConnection:close\r\n", FCGXreq.out);
    else
-      FCGX_PutS("Status: 500 ERROR\r\n", FCGXreq.out);
+      FCGX_PutS("Status: 404 Not Found\r\nConnection:close\r\n", FCGXreq.out);
+   else
+      FCGX_PutS("Status: 500 ERROR\r\nConnection:close\r\n", FCGXreq.out);
    FCGX_PutS("\r\n",      FCGXreq.out);
    FCGX_PutS( resp.data.c_str(), FCGXreq.out);
    FCGX_Finish_r(&FCGXreq);

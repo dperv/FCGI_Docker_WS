@@ -31,6 +31,8 @@ int main(int argc, char **argv)
 
    while ( true )
    {
+
+      try {
       request rq = srv.Accept();
       if(rq.type  == RQERROR)
       {
@@ -171,6 +173,11 @@ int main(int argc, char **argv)
       }
       srv.Response(resp);
       std::cout<<"==========================================================="<<std::endl;
+      } catch(...)
+      {
+         std::cout<<"SOme error. Waiting for new request."<<std::endl;
+         continue;
+      }
    }
 
 
