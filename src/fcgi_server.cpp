@@ -94,7 +94,7 @@ int FCGI_Server::Response(response &resp)
    FCGX_PutS("Content-type: text/html\r\n", FCGXreq.out);
    if(resp.status == OK)
       FCGX_PutS("Status: 200 OK\r\nConnection:close\r\n", FCGXreq.out);
-   else
+   else if(resp.status == NOT_FOUND)
       FCGX_PutS("Status: 404 Not Found\r\nConnection:close\r\n", FCGXreq.out);
    else
       FCGX_PutS("Status: 500 ERROR\r\nConnection:close\r\n", FCGXreq.out);
