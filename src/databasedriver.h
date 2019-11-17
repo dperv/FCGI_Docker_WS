@@ -12,10 +12,11 @@ class databaseDriver
       bool connect();
       bool disconnect();
 
-      bool objCreate( dataObject &obj );
-      bool objRead( dataObject &obj );
-      bool objUpdate( dataObject &obj );
-      bool objDelete( dataObject &obj );
+      bool objCreate(dataObject &obj , int &error_cade);
+      bool objRead(dataObject &obj );
+      bool objRead(std::vector<dataObject> &obj );
+      bool objUpdate(dataObject &obj , int &error, int &row);
+      bool objDelete( dataObject &obj, int &error, int &row );
       ~databaseDriver();
 
 

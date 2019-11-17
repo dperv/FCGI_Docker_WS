@@ -18,9 +18,11 @@ namespace sbFCGI {
    enum  restypes
    {
       UNKNOWN,
-      OK        = 200,
-      NOT_FOUND = 404,
-      ERROR     = 500
+      OK         = 200,
+      DUPLICATE  = 304,
+      NOT_FOUND  = 404,
+      WR_REQUEST = 412,
+      ERROR      = 500
    };
 
    struct request

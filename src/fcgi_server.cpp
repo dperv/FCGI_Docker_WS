@@ -41,22 +41,18 @@ request FCGI_Server::Accept()
    else
    {
       std::cout<<"Incoming request:"<<std::endl;
-      for(int i=0; FCGXreq.envp[i] != NULL; i+=2)
+
+      std::vector<std::string> pass_params;
+      pass_params.push_back("REQUEST_METHOD");
+      pass_params.push_back("CONTENT_LENGTH");
+      pass_params.push_back("REQUEST_URI");
+
+
+      for(auto &param : pass_params)
       {
-         char *var = FCGXreq.envp[i];
-         std::cout<<std::string(var)<<std::endl;
-         if(var != NULL)
-         {
-            std::string vr(var);
-            size_t found = vr.find('=');
-
-            if (found != std::string::npos)
-            {
-
-               data.header[vr.substr(0,found)] = vr.substr(found+1);
-            }
-
-         }
+         char *value = FCGX_GetParam(param.c_str(), FCGXreq.envp);
+         if( value )
+            data.header[param] = std::string(value);
       }
 
       if(data.header["REQUEST_METHOD"] == "GET")
@@ -73,22 +69,18 @@ request FCGI_Server::Accept()
          data.type = DELETE;
       }
 
-
-
-      if(data.header.count("CONTENT_LENGTH") && data.header["CONTENT_LENGTH"].length() && std::stoi(data.header["CONTENT_LENGTH"]) > 0)
+      if(data.header.count("CONTENT_LENGTH") && data.header["CONTENT_LENGTH"].length() && atoi(data.header["CONTENT_LENGTH"].c_str()) > 0)
       {
-
-         int ilen = std::stoi(data.header["CONTENT_LENGTH"]);
-         char *bufp = (char *)malloc(ilen+1);
-         bzero(bufp, ilen+1);
-         FCGX_GetStr((char *)bufp,ilen, FCGXreq.in);
-         data.data = std::string(bufp);
-         free(bufp);
-
+         int ilen = atoi(data.header["CONTENT_LENGTH"].c_str());
+         if( ilen > 0 )
+         {
+            char *bufp = (char *)malloc(ilen+1);
+            bzero(bufp, ilen+1);
+            FCGX_GetStr((char *)bufp,ilen, FCGXreq.in);
+            data.data = std::string(bufp);
+            free(bufp);
+         }
       }
-
-
-
    }
    return data;
 }
@@ -96,12 +88,25 @@ request FCGI_Server::Accept()
 int FCGI_Server::Response(response &resp)
 {
    FCGX_PutS("Content-type: text/html\r\n", FCGXreq.out);
-   if(resp.status == OK)
-      FCGX_PutS("Status: 200 OK\r\nConnection:close\r\n", FCGXreq.out);
-   else if(resp.status == NOT_FOUND)
-      FCGX_PutS("Status: 404 Not Found\r\nConnection:close\r\n", FCGXreq.out);
-   else
-      FCGX_PutS("Status: 500 ERROR\r\nConnection:close\r\n", FCGXreq.out);
+
+   switch (resp.status) {
+      case OK:
+         FCGX_PutS("Status: 200 OK\r\nConnection:close\r\n", FCGXreq.out);
+      break;
+      case DUPLICATE:
+         FCGX_PutS("Status: 304 Not Modified\r\nConnection:close\r\n", FCGXreq.out);
+      break;
+      case NOT_FOUND:
+         FCGX_PutS("Status: 404 Not Found\r\nConnection:close\r\n", FCGXreq.out);
+      break;
+      case WR_REQUEST:
+         FCGX_PutS("Status: 412 ERROR\r\nConnection:close\r\n", FCGXreq.out);
+      break;
+      default:
+         FCGX_PutS("Status: 500 ERROR\r\nConnection:close\r\n", FCGXreq.out);
+      break;
+   }
+
    FCGX_PutS("\r\n",      FCGXreq.out);
    FCGX_PutS( resp.data.c_str(), FCGXreq.out);
    FCGX_Finish_r(&FCGXreq);
